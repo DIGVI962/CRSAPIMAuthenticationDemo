@@ -4,10 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CRSAPIMAuthenticationDemo.Controllers
 {
+    [Authorize]
     [Route("api/crs")]
     [ApiController]
     public class CrsController : ControllerBase
     {
+        [AllowAnonymous]
         [HttpGet("public")]
         public IActionResult GetPublic()
         {
@@ -15,7 +17,6 @@ namespace CRSAPIMAuthenticationDemo.Controllers
         }
 
         [HttpGet("secure")]
-        [Authorize]
         public IActionResult GetSecure()
         {
             return Ok("This is a secure endpoint, you are authenticated!");

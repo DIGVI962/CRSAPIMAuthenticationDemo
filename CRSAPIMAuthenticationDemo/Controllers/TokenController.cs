@@ -22,18 +22,18 @@ namespace CRSAPIMAuthenticationDemo.Controllers
         }
 
         [HttpPost("generate")]
-        public IActionResult GenerateEncryptedToken([FromBody] string macAddress)
+        public IActionResult GenerateEncryptedToken([FromBody] GenerateTokenRequest request)
         {
-            if (string.IsNullOrEmpty(macAddress))
+            if (string.IsNullOrEmpty(request.MacAddress))
                 return BadRequest("MAC address is required");
 
             var salt = "1836-2854-1090";
-            var encryptedToken = EncryptToken(macAddress, salt);
+            var encryptedToken = EncryptToken(request.MacAddress, salt);
 
             var tokenRecord = new TokenRecord
             {
-                Id = TokenRecords.LastOrDefault()?.Id ?? 1,
-                MacAddress = macAddress,
+                Id = TokenRecords.LastOrDefault()?.Id+1 ?? 1,
+                MacAddress = request.MacAddress,
                 EncryptedToken = encryptedToken,
                 CreatedAt = DateTime.UtcNow
             };
@@ -43,12 +43,12 @@ namespace CRSAPIMAuthenticationDemo.Controllers
             return Ok(new { EncryptedToken = encryptedToken });
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route("validate")]
-        public async Task<IActionResult> ValidateToken([FromBody] string encryptedToken)
+        public async Task<IActionResult> ValidateToken([FromBody] ValidateTokenRequest request)
         {
             var tokenRecord = TokenRecords
-                .FirstOrDefault(x => x.EncryptedToken == encryptedToken);
+                .FirstOrDefault(x => x.EncryptedToken == request.EncryptedToken);
 
             if (tokenRecord == null)
                 return Unauthorized("Token not found");
