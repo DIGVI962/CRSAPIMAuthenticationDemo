@@ -1,0 +1,6 @@
+@CRSAPIMAuthenticationDemo_HostAddress = http://localhost:5226
+
+GET {{CRSAPIMAuthenticationDemo_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
