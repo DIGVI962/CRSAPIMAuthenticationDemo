@@ -1,6 +1,7 @@
-
 using CRSAPIMAuthenticationDemo.Configuration;
+using CRSAPIMAuthenticationDemo.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace CRSAPIMAuthenticationDemo
@@ -18,7 +19,6 @@ namespace CRSAPIMAuthenticationDemo
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
-                    // Set the Azure AD Authority and Audience
                     //options.Authority = $"{azureAdOptions.Instance}{azureAdOptions.TenantId}";
                     options.Audience = azureAdOptions.ClientId;
 
@@ -31,6 +31,10 @@ namespace CRSAPIMAuthenticationDemo
                         ValidAudience = azureAdOptions.ClientId
                     };
                 });
+
+            builder.Services.AddAuthorization();
+
+            builder.Services.AddDbContext<TokenDbContext>(options => options.UseSqlite(builder.Configuration.GetConnectionString("DefaultSQLiteConnection")));
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

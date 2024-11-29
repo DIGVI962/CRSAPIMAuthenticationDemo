@@ -1,6 +1,6 @@
 ﻿using CRSAPIMAuthenticationDemo.Configuration;
+using CRSAPIMAuthenticationDemo.Data;
 using CRSAPIMAuthenticationDemo.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
@@ -13,12 +13,13 @@ namespace CRSAPIMAuthenticationDemo.Controllers
     [ApiController]
     public class TokenController : ControllerBase
     {
-        private static List<TokenRecord> TokenRecords = new List<TokenRecord>();
         private readonly AzureAdOptions _azureOptions;
+        private readonly TokenDbContext _context;
 
-        public TokenController(IOptions<AzureAdOptions> azureOptions)
+        public TokenController(IOptions<AzureAdOptions> azureOptions, TokenDbContext context)
         {
             _azureOptions = azureOptions.Value;
+            _context = context;
         }
 
         [HttpPost("generate")]
@@ -32,13 +33,13 @@ namespace CRSAPIMAuthenticationDemo.Controllers
 
             var tokenRecord = new TokenRecord
             {
-                Id = TokenRecords.LastOrDefault()?.Id+1 ?? 1,
                 MacAddress = request.MacAddress,
                 EncryptedToken = encryptedToken,
                 CreatedAt = DateTime.UtcNow
             };
 
-            TokenRecords.Add(tokenRecord);
+            _context.TokenRecords.Add(tokenRecord);
+            _context.SaveChanges();
 
             return Ok(new { EncryptedToken = encryptedToken });
         }
@@ -47,7 +48,7 @@ namespace CRSAPIMAuthenticationDemo.Controllers
         [Route("validate")]
         public async Task<IActionResult> ValidateToken([FromBody] ValidateTokenRequest request)
         {
-            var tokenRecord = TokenRecords
+            var tokenRecord = _context.TokenRecords
                 .FirstOrDefault(x => x.EncryptedToken == request.EncryptedToken);
 
             if (tokenRecord == null)
