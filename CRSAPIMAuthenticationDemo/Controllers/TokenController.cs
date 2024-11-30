@@ -28,6 +28,12 @@ namespace CRSAPIMAuthenticationDemo.Controllers
             if (string.IsNullOrEmpty(request.MacAddress))
                 return BadRequest("MAC address is required");
 
+            var storedValue = _context.TokenRecords.FirstOrDefault(x => x.MacAddress == request.MacAddress);
+            if (storedValue != null)
+            {
+                return Ok(new { EncryptedToken = storedValue.EncryptedToken });
+            }
+
             var salt = "1836-2854-1090";
             var encryptedToken = EncryptToken(request.MacAddress, salt);
 
