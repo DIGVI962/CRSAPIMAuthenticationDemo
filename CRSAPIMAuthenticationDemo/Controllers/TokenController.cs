@@ -4,6 +4,7 @@ using CRSAPIMAuthenticationDemo.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -28,18 +29,17 @@ namespace CRSAPIMAuthenticationDemo.Controllers
             if (string.IsNullOrEmpty(request.MacAddress))
                 return BadRequest("MAC address is required");
 
-            var storedValue = _context.TokenRecords.FirstOrDefault(x => x.MacAddress == request.MacAddress);
+            var salt = "1836-2854-1090";
+            var encryptedToken = EncryptToken(request.MacAddress, salt);
+
+            var storedValue = _context.TokenRecords.FirstOrDefault(x => x.EncryptedToken == encryptedToken);
             if (storedValue != null)
             {
                 return Ok(new { EncryptedToken = storedValue.EncryptedToken });
             }
 
-            var salt = "1836-2854-1090";
-            var encryptedToken = EncryptToken(request.MacAddress, salt);
-
             var tokenRecord = new TokenRecord
             {
-                MacAddress = request.MacAddress,
                 EncryptedToken = encryptedToken,
                 CreatedAt = DateTime.UtcNow
             };
@@ -58,12 +58,17 @@ namespace CRSAPIMAuthenticationDemo.Controllers
                 .FirstOrDefault(x => x.EncryptedToken == request.EncryptedToken);
 
             if (tokenRecord == null)
-                return Unauthorized("Token not found");
+                return Unauthorized("Please Generate an Identification Token first");
 
-
-            var accessToken = await GetAzureOAuthToken();
-
-            return Ok(new { AccessToken = accessToken });
+            try
+            {
+                var accessToken = await GetAzureOAuthToken();
+                return Ok(new { AccessToken = accessToken });
+            }
+            catch
+            {
+                return Problem(statusCode: (int)HttpStatusCode.InternalServerError, detail: "There was a probelm generating OAuth Token");
+            }
         }
 
         private string EncryptToken(string macAddress, string salt)

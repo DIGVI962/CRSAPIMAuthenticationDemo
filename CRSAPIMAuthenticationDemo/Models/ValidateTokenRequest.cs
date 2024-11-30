@@ -2,6 +2,6 @@
 {
     public class ValidateTokenRequest
     {
-        public string EncryptedToken { get; set; }
+        public string EncryptedToken { get; set; } = String.Empty;
     }
 }

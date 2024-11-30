@@ -20,7 +20,7 @@ namespace CRSAPIMAuthenticationDemo
                 .AddJwtBearer(options =>
                 {
                     //options.Authority = $"{azureAdOptions.Instance}{azureAdOptions.TenantId}";
-                    options.Authority = $"https://login.microsoftonline.com/{azureAdOptions.TenantId}";
+                    options.Authority = $"https://login.microsoftonline.com/{azureAdOptions!.TenantId}";
                     //options.Audience = azureAdOptions.ClientId;
 
                     options.TokenValidationParameters = new TokenValidationParameters
