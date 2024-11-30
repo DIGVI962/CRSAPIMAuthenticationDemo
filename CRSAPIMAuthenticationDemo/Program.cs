@@ -20,7 +20,7 @@ namespace CRSAPIMAuthenticationDemo
                 .AddJwtBearer(options =>
                 {
                     //options.Authority = $"{azureAdOptions.Instance}{azureAdOptions.TenantId}";
-                    options.Audience = azureAdOptions.ClientId;
+                    //options.Audience = azureAdOptions.ClientId;
 
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
@@ -28,7 +28,7 @@ namespace CRSAPIMAuthenticationDemo
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidIssuer = azureAdOptions.Issuer,
-                        ValidAudience = azureAdOptions.ClientId
+                        ValidAudience = azureAdOptions.Audience
                     };
                 });
 

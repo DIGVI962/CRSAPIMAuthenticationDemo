@@ -75,10 +75,7 @@ namespace CRSAPIMAuthenticationDemo.Controllers
             var clientId = _azureOptions.ClientId;
             var clientSecret = _azureOptions.ClientSecrets;
             var tenantId = _azureOptions.TenantId;
-            var scopes = new string[] 
-            { 
-                //"https://graph.microsoft.com/.default" 
-            };
+            var scopes = _azureOptions.scopes;
 
             var cca = ConfidentialClientApplicationBuilder.Create(clientId)
                 .WithClientSecret(clientSecret)
