@@ -6,7 +6,7 @@
 # User-specific files
 *.sqlite
 *.sqlite-shm
-*.sqlit-wal
+*.sqlite-wal
 *.rsuser
 *.suo
 *.user
