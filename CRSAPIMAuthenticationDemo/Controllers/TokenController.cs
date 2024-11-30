@@ -15,11 +15,13 @@ namespace CRSAPIMAuthenticationDemo.Controllers
     public class TokenController : ControllerBase
     {
         private readonly AzureAdOptions _azureOptions;
+        private readonly AzureAdClientOptions _azureClientOptions;
         private readonly TokenDbContext _context;
 
-        public TokenController(IOptions<AzureAdOptions> azureOptions, TokenDbContext context)
+        public TokenController(IOptions<AzureAdClientOptions> azureClientOptions, IOptions<AzureAdOptions> azureOptions, TokenDbContext context)
         {
             _azureOptions = azureOptions.Value;
+            _azureClientOptions = azureClientOptions.Value;
             _context = context;
         }
 
@@ -65,9 +67,9 @@ namespace CRSAPIMAuthenticationDemo.Controllers
                 var accessToken = await GetAzureOAuthToken();
                 return Ok(new { AccessToken = accessToken });
             }
-            catch
+            catch(Exception ex)
             {
-                return Problem(statusCode: (int)HttpStatusCode.InternalServerError, detail: "There was a probelm generating OAuth Token");
+                return Problem(statusCode: (int)HttpStatusCode.InternalServerError, detail: ex.Message);
             }
         }
 
@@ -83,17 +85,19 @@ namespace CRSAPIMAuthenticationDemo.Controllers
 
         private async Task<string> GetAzureOAuthToken()
         {
-            var clientId = _azureOptions.ClientId;
-            var clientSecret = _azureOptions.ClientSecrets;
+            var clientId = _azureClientOptions.ClientId;
+            var clientSecret = _azureClientOptions.ClientSecrets;
+            var scope = _azureClientOptions.Scope;
+            var instance = _azureOptions.Instance;
             var tenantId = _azureOptions.TenantId;
-            var scopes = _azureOptions.scopes;
 
-            var cca = ConfidentialClientApplicationBuilder.Create(clientId)
+            var cca = ConfidentialClientApplicationBuilder
+                .Create(clientId)
                 .WithClientSecret(clientSecret)
-                .WithAuthority(new Uri($"https://login.microsoftonline.com/{tenantId}"))
+                .WithAuthority($"{instance}{tenantId}/")
                 .Build();
 
-            var result = await cca.AcquireTokenForClient(scopes).ExecuteAsync();
+            var result = await cca.AcquireTokenForClient(new List<string> { scope }).ExecuteAsync();
             return result.AccessToken;
         }
     }

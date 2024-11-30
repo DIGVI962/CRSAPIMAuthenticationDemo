@@ -2,7 +2,7 @@ using CRSAPIMAuthenticationDemo.Configuration;
 using CRSAPIMAuthenticationDemo.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.Identity.Web;
 
 namespace CRSAPIMAuthenticationDemo
 {
@@ -13,27 +13,12 @@ namespace CRSAPIMAuthenticationDemo
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.Configure<AzureAdOptions>(builder.Configuration.GetSection("AzureAd"));
+            builder.Services.Configure<AzureAdClientOptions>(builder.Configuration.GetSection("AzureAdClient"));
 
-            var azureAdOptions = builder.Configuration.GetSection("AzureAd").Get<AzureAdOptions>();
+            var azureAdClientOptions = builder.Configuration.GetSection("AzureAdClient").Get<AzureAdClientOptions>();
 
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
-                {
-                    //options.Authority = $"{azureAdOptions.Instance}{azureAdOptions.TenantId}";
-                    options.Authority = $"https://login.microsoftonline.com/{azureAdOptions!.TenantId}";
-                    //options.Audience = azureAdOptions.ClientId;
-
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidIssuer = azureAdOptions.Issuer,
-                        ValidateAudience = true,
-                        ValidAudience = azureAdOptions.Audience,
-                        ValidateLifetime = true
-                    };
-                });
-
-            builder.Services.AddAuthorization();
+                .AddMicrosoftIdentityWebApi(builder.Configuration);
 
             builder.Services.AddDbContext<TokenDbContext>(options => options.UseSqlite(builder.Configuration.GetConnectionString("DefaultSQLiteConnection")));
 
