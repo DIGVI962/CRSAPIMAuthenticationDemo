@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace CRSAPIMAuthenticationDemo.Controllers
 {
@@ -7,17 +6,41 @@ namespace CRSAPIMAuthenticationDemo.Controllers
     [ApiController]
     public class CrsController : ControllerBase
     {
+        public static List<string> Users = new List<string>();
+
         [HttpGet("public")]
         public IActionResult GetPublic()
         {
             return Ok("This is a public endpoint.");
         }
 
-        [Authorize(Roles = "AccessSecure")]
         [HttpGet("secure")]
         public IActionResult GetSecure()
         {
             return Ok("This is a secure endpoint, you are authenticated!");
+        }
+
+        [HttpPost("saveUser")]
+        public IActionResult SaveUser([FromBody] string user)
+        {
+            if (String.IsNullOrWhiteSpace(user))
+                return BadRequest("Please provide Non-null or empty User value");
+
+            if (user.Length > 30)
+                return BadRequest("User value cannot be more than 30 characters");
+
+            if (Users.Any(u => u == user.Trim()))
+                return BadRequest("User already present");
+
+            Users.Add(user);
+
+            return Ok("User saved");
+        }
+
+        [HttpGet("getUsers")]
+        public IActionResult GetUsers()
+        {
+            return Ok(Users);
         }
     }
 }

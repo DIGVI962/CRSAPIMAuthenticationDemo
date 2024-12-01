@@ -1,5 +1,4 @@
 ﻿using CRSAPIMAuthenticationDemo.Configuration;
-using CRSAPIMAuthenticationDemo.Data;
 using CRSAPIMAuthenticationDemo.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -14,15 +13,14 @@ namespace CRSAPIMAuthenticationDemo.Controllers
     [ApiController]
     public class TokenController : ControllerBase
     {
+        private static List<TokenRecord> TokenRecords = new List<TokenRecord>();
         private readonly AzureAdOptions _azureOptions;
         private readonly AzureAdClientOptions _azureClientOptions;
-        private readonly TokenDbContext _context;
 
-        public TokenController(IOptions<AzureAdClientOptions> azureClientOptions, IOptions<AzureAdOptions> azureOptions, TokenDbContext context)
+        public TokenController(IOptions<AzureAdClientOptions> azureClientOptions, IOptions<AzureAdOptions> azureOptions)
         {
             _azureOptions = azureOptions.Value;
             _azureClientOptions = azureClientOptions.Value;
-            _context = context;
         }
 
         [HttpPost("generate")]
@@ -34,7 +32,7 @@ namespace CRSAPIMAuthenticationDemo.Controllers
             var salt = "1836-2854-1090";
             var encryptedToken = EncryptToken(request.MacAddress, salt);
 
-            var storedValue = _context.TokenRecords.FirstOrDefault(x => x.EncryptedToken == encryptedToken);
+            var storedValue = TokenRecords.FirstOrDefault(x => x.EncryptedToken == encryptedToken);
             if (storedValue != null)
             {
                 return Ok(new { EncryptedToken = storedValue.EncryptedToken });
@@ -46,8 +44,8 @@ namespace CRSAPIMAuthenticationDemo.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
-            _context.TokenRecords.Add(tokenRecord);
-            _context.SaveChanges();
+            TokenRecords.Add(tokenRecord);
+            //SaveChanges();
 
             return Ok(new { EncryptedToken = encryptedToken });
         }
@@ -56,7 +54,7 @@ namespace CRSAPIMAuthenticationDemo.Controllers
         [Route("validate")]
         public async Task<IActionResult> ValidateToken([FromBody] ValidateTokenRequest request)
         {
-            var tokenRecord = _context.TokenRecords
+            var tokenRecord = TokenRecords
                 .FirstOrDefault(x => x.EncryptedToken == request.EncryptedToken);
 
             if (tokenRecord == null)
@@ -67,7 +65,7 @@ namespace CRSAPIMAuthenticationDemo.Controllers
                 var accessToken = await GetAzureOAuthToken();
                 return Ok(new { AccessToken = accessToken });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return Problem(statusCode: (int)HttpStatusCode.InternalServerError, detail: ex.Message);
             }
