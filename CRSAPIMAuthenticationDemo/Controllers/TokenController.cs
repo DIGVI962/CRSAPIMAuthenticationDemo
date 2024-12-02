@@ -14,12 +14,10 @@ namespace CRSAPIMAuthenticationDemo.Controllers
     public class TokenController : ControllerBase
     {
         private static List<TokenRecord> TokenRecords = new List<TokenRecord>();
-        private readonly AzureAdOptions _azureOptions;
         private readonly AzureAdClientOptions _azureClientOptions;
 
-        public TokenController(IOptions<AzureAdClientOptions> azureClientOptions, IOptions<AzureAdOptions> azureOptions)
+        public TokenController(IOptions<AzureAdClientOptions> azureClientOptions)
         {
-            _azureOptions = azureOptions.Value;
             _azureClientOptions = azureClientOptions.Value;
         }
 
@@ -45,7 +43,6 @@ namespace CRSAPIMAuthenticationDemo.Controllers
             };
 
             TokenRecords.Add(tokenRecord);
-            //SaveChanges();
 
             return Ok(new { EncryptedToken = encryptedToken });
         }
@@ -86,8 +83,8 @@ namespace CRSAPIMAuthenticationDemo.Controllers
             var clientId = _azureClientOptions.ClientId;
             var clientSecret = _azureClientOptions.ClientSecrets;
             var scope = _azureClientOptions.Scope;
-            var instance = _azureOptions.Instance;
-            var tenantId = _azureOptions.TenantId;
+            var instance = _azureClientOptions.Instance;
+            var tenantId = _azureClientOptions.TenantId;
 
             var cca = ConfidentialClientApplicationBuilder
                 .Create(clientId)

@@ -8,10 +8,7 @@ namespace CRSAPIMAuthenticationDemo
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.Configure<AzureAdOptions>(builder.Configuration.GetSection("AzureAd"));
             builder.Services.Configure<AzureAdClientOptions>(builder.Configuration.GetSection("AzureAdClient"));
-
-            var azureAdClientOptions = builder.Configuration.GetSection("AzureAdClient").Get<AzureAdClientOptions>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
